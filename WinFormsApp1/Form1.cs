@@ -111,11 +111,12 @@ namespace WinFormsApp1
 
                 // NICのアイコンを表示
                 PictureBox iconPictureBox = new PictureBox();
-                iconPictureBox.Image = Image.FromFile("C:\\Users\\t0mm\\source\\repos\\WinFormsApp1\\WinFormsApp1\\Resource\\NIC_icon.png"); // 画像ファイルのパスを指定
+                iconPictureBox.Image = global::WinFormsApp1.Properties.Resources.NIC_icon; // プロジェクトのリソースから画像を読み込む
                 iconPictureBox.SizeMode = PictureBoxSizeMode.Zoom;
                 iconPictureBox.Size = new Size(140, 45); // アイコンのサイズを調整
                 iconPictureBox.Location = new Point(5, 50);
                 this.Controls.Add(iconPictureBox);
+
 
                 // マウスイベントのハンドラーを追加
                 this.MouseEnter += NICCard_MouseEnter;
