@@ -46,6 +46,7 @@ namespace WinFormsApp1
 
             // メニューストリップにファイルメニューを追加
             menuStrip1.Items.Add(fileMenuItem);
+
         }
 
         private void NewMenuItem_Click(object? sender, EventArgs e)

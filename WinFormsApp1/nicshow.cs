@@ -76,16 +76,20 @@ namespace WinFormsApp1
     // Form1クラス
     public partial class Form1 : Form
     {
+        private Button refreshButton; // 再取得ボタンのフィールドを追加
+        private FlowLayoutPanel flowLayoutPanel; // flowLayoutPanelをクラスのメンバー変数として定義
+
         public Form1()
         {
             InitializeComponent();
+            this.Resize += Form1_Resize; // サイズ変更イベントの設定
             DisplayNICCards(); // NICカードを表示するメソッドを呼び出す
         }
 
         private void DisplayNICCards()
         {
             // FlowLayoutPanelを作成
-            FlowLayoutPanel flowLayoutPanel = new FlowLayoutPanel();
+            flowLayoutPanel = new FlowLayoutPanel(); // 既存のローカル変数の代わりにメンバー変数を使用
             flowLayoutPanel.FlowDirection = FlowDirection.LeftToRight; // 左から右へのフロー
             flowLayoutPanel.AutoScroll = true; // 自動スクロール有効
             flowLayoutPanel.Dock = DockStyle.Fill; // 親コントロールいっぱいに広がるように設定
@@ -109,8 +113,36 @@ namespace WinFormsApp1
                 flowLayoutPanel.Controls.Add(nicCard);
             }
 
+            // 再取得ボタンを作成して設定
+            refreshButton = new Button();
+            refreshButton.Text = "再取得";
+            refreshButton.Click += RefreshButton_Click;
+            refreshButton.Margin = new Padding(10); // マージンを追加
+            refreshButton.Width = 100; // 幅を100ピクセルに設定
+
+            // ボタンの位置を設定
+            UpdateRefreshButtonLocation();
+
+            // フォームにボタンを追加
+            this.Controls.Add(refreshButton);
+
             // FormにFlowLayoutPanelを追加
             this.Controls.Add(flowLayoutPanel);
+
+        }
+
+        private void UpdateRefreshButtonLocation()
+        {
+            // ボタンの位置を再計算
+            int buttonX = this.ClientSize.Width - refreshButton.Width - 20; // ボタンの右端を20ピクセルのマージンで調整
+            int buttonY = this.ClientSize.Height - refreshButton.Height - 20; // ボタンの下端を20ピクセルのマージンで調整
+            refreshButton.Location = new Point(buttonX, buttonY);
+        }
+
+        private void Form1_Resize(object sender, EventArgs e)
+        {
+            // ボタンの位置を再計算
+            UpdateRefreshButtonLocation();
         }
 
         private string GetIPAddress(NetworkInterface nic)
@@ -131,5 +163,35 @@ namespace WinFormsApp1
             // IPアドレスが見つからなかった場合、空文字列を返す
             return "";
         }
+        private void RefreshButton_Click(object sender, EventArgs e)
+        {
+            // NIC情報を再取得する
+            RefreshNICInfo();
+        }
+
+        private void RefreshNICInfo()
+        {
+            // flowLayoutPanelがnullでないかチェック
+            if (flowLayoutPanel != null)
+            {
+                // フローレイアウトパネルの子コントロール（NICカード）をクリア
+                flowLayoutPanel.Controls.Clear();
+
+                // FlowLayoutPanel を再度追加
+                this.Controls.Add(flowLayoutPanel);
+
+                // NICカードを再表示
+                DisplayNICCards();
+            }
+            else
+            {
+                // flowLayoutPanelが初期化されていない場合、DisplayNICCardsを呼び出して初期化する
+                DisplayNICCards();
+            }
+        }
+
+
     }
+
+
 }
