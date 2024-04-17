@@ -1,12 +1,19 @@
 using System;
 using System.Drawing;
 using System.Windows.Forms;
-using System.Net.NetworkInformation;
 
 namespace WinFormsApp1
 {
     public partial class Form1 : Form
     {
+        private void SetMenuBarBackgroundColor()
+        {
+            // システムのメニューの背景色を取得
+            Color systemMenuColor = SystemColors.Menu;
+
+            // メニューバーの背景色を設定
+            menuStrip1.BackColor = systemMenuColor;
+        }
 
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -17,6 +24,7 @@ namespace WinFormsApp1
             // フォームのロード時にメニュー項目を追加する
             // ファイルメニューを作成
             ToolStripMenuItem fileMenuItem = new ToolStripMenuItem("ファイル");
+
 
             // ファイルメニューにサブメニューを追加
             ToolStripMenuItem newMenuItem = new ToolStripMenuItem("新規作成");
