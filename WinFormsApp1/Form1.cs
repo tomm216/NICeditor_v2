@@ -74,6 +74,7 @@ namespace WinFormsApp1
 
 
         // NICカード用のカスタムコントロール
+        // NICカード用のカスタムコントロール
         public class NICCard : Panel
         {
             private string nicName;
@@ -116,23 +117,30 @@ namespace WinFormsApp1
                 iconPictureBox.Location = new Point(5, 50);
                 this.Controls.Add(iconPictureBox);
 
-                // カード全体にマウスイベントのハンドラーを追加
+                // マウスイベントのハンドラーを追加
                 this.MouseEnter += NICCard_MouseEnter;
                 this.MouseLeave += NICCard_MouseLeave;
+
+                // 画像の部分にもマウスイベントを追加
+                nameLabel.MouseEnter += NICCard_MouseEnter;
+                nameLabel.MouseLeave += NICCard_MouseLeave;
+                ipLabel.MouseEnter += NICCard_MouseEnter;
+                ipLabel.MouseLeave += NICCard_MouseLeave;
+                iconPictureBox.MouseEnter += NICCard_MouseEnter;
+                iconPictureBox.MouseLeave += NICCard_MouseLeave;
             }
 
             private void NICCard_MouseEnter(object? sender, EventArgs e)
             {
-                // カード全体にマウスが入った時の処理
                 this.BackColor = hoverColor;
             }
 
             private void NICCard_MouseLeave(object? sender, EventArgs e)
             {
-                // カード全体からマウスが出た時の処理
                 this.BackColor = string.IsNullOrEmpty(ipAddress) ? missingColor : normalColor;
             }
         }
+
 
         private void DisplayNICCards()
         {
