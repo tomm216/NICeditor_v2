@@ -76,8 +76,8 @@ namespace WinFormsApp1
     // Form1クラス
     public partial class Form1 : Form
     {
-        private Button refreshButton; // 再取得ボタンのフィールドを追加
-        private FlowLayoutPanel flowLayoutPanel; // flowLayoutPanelをクラスのメンバー変数として定義
+        private Button? refreshButton; // 再取得ボタンのフィールドを追加
+        private FlowLayoutPanel? flowLayoutPanel; // flowLayoutPanelをクラスのメンバー変数として定義
 
         public Form1()
         {
@@ -171,24 +171,31 @@ namespace WinFormsApp1
 
         private void RefreshNICInfo()
         {
-            // flowLayoutPanelがnullでないかチェック
+            // FlowLayoutPanelがnullでないことを確認
             if (flowLayoutPanel != null)
             {
-                // フローレイアウトパネルの子コントロール（NICカード）をクリア
+                // FlowLayoutPanel内のNICカードをクリアせず、新しいNICカードを追加する
                 flowLayoutPanel.Controls.Clear();
 
-                // FlowLayoutPanel を再度追加
-                this.Controls.Add(flowLayoutPanel);
+                // デバイスに接続されているNICの一覧を再取得
+                NetworkInterface[] nics = NetworkInterface.GetAllNetworkInterfaces();
 
-                // NICカードを再表示
-                DisplayNICCards();
-            }
-            else
-            {
-                // flowLayoutPanelが初期化されていない場合、DisplayNICCardsを呼び出して初期化する
-                DisplayNICCards();
+                // NICの一覧を表示
+                foreach (NetworkInterface nic in nics)
+                {
+                    // NICの名前を取得
+                    string nicName = nic.Description;
+
+                    // NICのIPアドレスを取得
+                    string ipAddress = GetIPAddress(nic);
+
+                    // NICカードを作成してFlowLayoutPanelに追加
+                    NICCard nicCard = new NICCard(nicName, ipAddress);
+                    flowLayoutPanel.Controls.Add(nicCard);
+                }
             }
         }
+
 
 
     }
