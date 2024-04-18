@@ -21,6 +21,10 @@ namespace WinFormsApp1
             // ラベルのテキストを設定
             label1.Text = "NIC一覧表示";
 
+            // 管理者として実行しているかを判別し、結果を表示する
+            bool isAdmin = IsUserAdministrator();
+            label1.Text += isAdmin ? "（管理者として実行中）" : "（一般ユーザーとして実行中）";
+
             // フォームのロード時にメニュー項目を追加する
             // ファイルメニューを作成
             ToolStripMenuItem fileMenuItem = new ToolStripMenuItem("ファイル");
@@ -73,6 +77,17 @@ namespace WinFormsApp1
             if (result == DialogResult.OK)
             {
                 Application.Exit();
+            }
+        }
+
+        private bool IsUserAdministrator()
+        {
+            // 現在のユーザーが管理者権限を持っているかどうかを判定する
+
+            using (var identity = System.Security.Principal.WindowsIdentity.GetCurrent())
+            {
+                var principal = new System.Security.Principal.WindowsPrincipal(identity);
+                return principal.IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
             }
         }
     }
