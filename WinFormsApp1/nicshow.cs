@@ -10,16 +10,34 @@ namespace WinFormsApp1
     {
         private string nicName;
         private string ipAddress;
+        private string subnetMask;
+        private string defaultGateway;
+        private string[] dnsServers;
         private Color normalColor = Color.LightGray;
         private Color missingColor = Color.Red;
         private Color hoverColor = Color.LightBlue;
 
-        public NICCard(string nicName, string ipAddress)
+        public NICCard(string nicName, string ipAddress, string subnetMask, string defaultGateway, string[] dnsServers)
         {
             this.nicName = nicName;
             this.ipAddress = ipAddress;
+            this.subnetMask = subnetMask;
+            this.defaultGateway = defaultGateway;
+            this.dnsServers = dnsServers;
 
             InitializeCard();
+
+            // ダブルクリックイベントハンドラーを追加
+            this.DoubleClick += NICCard_DoubleClick;
+        }
+
+        private void NICCard_DoubleClick(object sender, EventArgs e)
+        {
+            // NICの情報を表示するフォームを作成して表示
+            using (NICEditForm editForm = new NICEditForm(nicName, ipAddress, subnetMask, defaultGateway, dnsServers))
+            {
+                editForm.ShowDialog();
+            }
         }
 
         private void InitializeCard()
@@ -60,6 +78,11 @@ namespace WinFormsApp1
             ipLabel.MouseLeave += NICCard_MouseLeave;
             iconPictureBox.MouseEnter += NICCard_MouseEnter;
             iconPictureBox.MouseLeave += NICCard_MouseLeave;
+
+            // NICカードの各コントロールにもダブルクリックイベントハンドラーを追加
+            nameLabel.DoubleClick += NICCard_DoubleClick;
+            ipLabel.DoubleClick += NICCard_DoubleClick;
+            iconPictureBox.DoubleClick += NICCard_DoubleClick;
         }
 
         private void NICCard_MouseEnter(object? sender, EventArgs e)
@@ -108,8 +131,17 @@ namespace WinFormsApp1
                 // NICのIPアドレスを取得
                 string ipAddress = GetIPAddress(nic);
 
+                // NICのサブネットマスクを取得
+                string subnetMask = GetSubnetMask(nic);
+
+                // NICのデフォルトゲートウェイを取得
+                string defaultGateway = GetDefaultGateway(nic);
+
+                // NICのDNSサーバーを取得
+                string[] dnsServers = GetDnsServers(nic);
+
                 // NICカードを作成してFlowLayoutPanelに追加
-                NICCard nicCard = new NICCard(nicName, ipAddress);
+                NICCard nicCard = new NICCard(nicName, ipAddress, subnetMask, defaultGateway, dnsServers);
                 flowLayoutPanel.Controls.Add(nicCard);
             }
 
@@ -163,6 +195,58 @@ namespace WinFormsApp1
             // IPアドレスが見つからなかった場合、空文字列を返す
             return "";
         }
+
+        private string GetSubnetMask(NetworkInterface nic)
+        {
+            var ipProps = nic.GetIPProperties();
+            var ipAddresses = ipProps.UnicastAddresses;
+
+            // 最初のIPv4アドレスを取得
+            foreach (var ipAddress in ipAddresses)
+            {
+                if (ipAddress.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                {
+                    return ipAddress.IPv4Mask.ToString();
+                }
+            }
+
+            // サブネットマスクが見つからなかった場合、空文字列を返す
+            return "";
+        }
+
+        private string GetDefaultGateway(NetworkInterface nic)
+        {
+            var ipProps = nic.GetIPProperties();
+            var gateways = ipProps.GatewayAddresses;
+
+            // 最初のデフォルトゲートウェイを取得
+            foreach (var gateway in gateways)
+            {
+                if (gateway.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                {
+                    return gateway.Address.ToString();
+                }
+            }
+
+            // デフォルトゲートウェイが見つからなかった場合、空文字列を返す
+            return "";
+        }
+
+        private string[] GetDnsServers(NetworkInterface nic)
+        {
+            var ipProps = nic.GetIPProperties();
+            var dnsAddresses = ipProps.DnsAddresses;
+            var dnsServers = new string[dnsAddresses.Count];
+
+            // DNSサーバーのリストを取得
+            for (int i = 0; i < dnsAddresses.Count; i++)
+            {
+                dnsServers[i] = dnsAddresses[i].ToString();
+            }
+
+            return dnsServers;
+        }
+
         private void RefreshButton_Click(object sender, EventArgs e)
         {
             // NIC情報を再取得する
@@ -189,16 +273,20 @@ namespace WinFormsApp1
                     // NICのIPアドレスを取得
                     string ipAddress = GetIPAddress(nic);
 
+                    // NICのサブネットマスクを取得
+                    string subnetMask = GetSubnetMask(nic);
+
+                    // NICのデフォルトゲートウェイを取得
+                    string defaultGateway = GetDefaultGateway(nic);
+
+                    // NICのDNSサーバーを取得
+                    string[] dnsServers = GetDnsServers(nic);
+
                     // NICカードを作成してFlowLayoutPanelに追加
-                    NICCard nicCard = new NICCard(nicName, ipAddress);
+                    NICCard nicCard = new NICCard(nicName, ipAddress, subnetMask, defaultGateway, dnsServers);
                     flowLayoutPanel.Controls.Add(nicCard);
                 }
             }
         }
-
-
-
     }
-
-
 }
