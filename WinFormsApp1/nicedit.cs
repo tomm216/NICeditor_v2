@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Drawing;
-using System.Net.NetworkInformation;
 using System.Windows.Forms;
 using System.Management;
 
@@ -8,6 +7,9 @@ namespace WinFormsApp1
 {
     public class NICEditForm : Form
     {
+
+        private TableLayoutPanel tableLayout;
+        private Button saveButton;
         private Panel contentPanel;
         private TextBox nameTextBox;
         private TextBox ipTextBox;
@@ -15,83 +17,74 @@ namespace WinFormsApp1
         private TextBox defaultGatewayTextBox;
         private TextBox primaryDnsTextBox;
         private TextBox alternateDnsTextBox;
-        private Button saveButton;
 
         public NICEditForm(string nicName, string ipAddress, string subnetMask, string defaultGateway, string[] dnsServers)
         {
             InitializeComponents();
             DisplayNICInfo(nicName, ipAddress, subnetMask, defaultGateway, dnsServers.Length > 0 ? dnsServers[0] : "", dnsServers.Length > 1 ? dnsServers[1] : "");
+            this.Resize += NICEditForm_Resize; // リサイズイベントを有効化
         }
 
-
-
+        private void NICEditForm_Resize(object sender, EventArgs e)
+        {
+            AdjustPanelSize();
+        }
 
         private void InitializeComponents()
         {
-            this.Text = "NIC Details";
-            this.Size = new System.Drawing.Size(400, 350);
+            this.Text = "NIC 設定変更";
+            this.Size = new System.Drawing.Size(500, 350);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.Font = new Font("Arial", 10, FontStyle.Regular);
 
-            contentPanel = new Panel();
-            contentPanel.AutoScroll = true;
-            contentPanel.Dock = DockStyle.Fill;
-            this.Controls.Add(contentPanel);
+            tableLayout = new TableLayoutPanel();
+            tableLayout.Dock = DockStyle.Fill;
+            tableLayout.Padding = new Padding(10);
+            tableLayout.ColumnCount = 2;
+            tableLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 200)); // 列1: ラベル
+            tableLayout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize)); // 列2: データ
 
-            Label nameLabel = CreateLabel("NIC Name:", 20);
+            this.Controls.Add(tableLayout);
+
+            // ラベルとテキストボックスを追加
             nameTextBox = CreateTextBox();
-            Label ipLabel = CreateLabel("IP Address:", nameLabel.Bottom + 10);
             ipTextBox = CreateTextBox();
-            Label subnetMaskLabel = CreateLabel("Subnet Mask:", ipLabel.Bottom + 10);
             subnetMaskTextBox = CreateTextBox();
-            Label defaultGatewayLabel = CreateLabel("Default Gateway:", subnetMaskLabel.Bottom + 10);
             defaultGatewayTextBox = CreateTextBox();
-            Label primaryDnsLabel = CreateLabel("Primary DNS Server:", defaultGatewayLabel.Bottom + 10);
             primaryDnsTextBox = CreateTextBox();
-            Label alternateDnsLabel = CreateLabel("Alternate DNS Server:", primaryDnsLabel.Bottom + 10);
             alternateDnsTextBox = CreateTextBox();
 
+            AddRowWithTextBox("NIC 名:", nameTextBox);
+            AddRowWithTextBox("IP アドレス:", ipTextBox);
+            AddRowWithTextBox("サブネット マスク:", subnetMaskTextBox);
+            AddRowWithTextBox("デフォルト ゲートウェイ:", defaultGatewayTextBox);
+            AddRowWithTextBox("プライマリ DNS サーバー:", primaryDnsTextBox);
+            AddRowWithTextBox("代替 DNS サーバー:", alternateDnsTextBox);
+
             saveButton = new Button();
-            saveButton.Text = "Save";
+            saveButton.Text = "保存";
             saveButton.Font = new Font("Arial", 10, FontStyle.Bold);
             saveButton.Click += SaveButton_Click;
 
-            ArrangeControls(nameLabel, nameTextBox, ipLabel, ipTextBox, subnetMaskLabel, subnetMaskTextBox, defaultGatewayLabel, defaultGatewayTextBox, primaryDnsLabel, primaryDnsTextBox, alternateDnsLabel, alternateDnsTextBox, saveButton);
+            tableLayout.Controls.Add(saveButton);
+            tableLayout.SetColumnSpan(saveButton, 2);
         }
 
-        private Label CreateLabel(string labelText, int top)
+        private void AddRowWithTextBox(string label, TextBox textBox)
         {
-            return new Label
-            {
-                Text = labelText,
-                AutoSize = true,
-                ForeColor = Color.FromArgb(64, 64, 64),
-                Font = new Font("Arial", 10, FontStyle.Bold),
-                Location = new Point(20, top)
-            };
-        }
+            Label labelCtrl = new Label();
+            labelCtrl.Text = label;
+            labelCtrl.AutoSize = true;
+            labelCtrl.TextAlign = ContentAlignment.MiddleLeft;
 
-        private TextBox CreateTextBox()
-        {
-            return new TextBox
-            {
-                Font = new Font("Arial", 10, FontStyle.Regular),
-                Size = new Size(250, 25)
-            };
-        }
+            tableLayout.Controls.Add(labelCtrl);
 
-        private void ArrangeControls(params Control[] controls)
-        {
-            int margin = 20;
-            for (int i = 0; i < controls.Length; i++)
-            {
-                controls[i].Location = new Point(margin, margin + i * (controls[i].Height + 10));
-                contentPanel.Controls.Add(controls[i]);
-            }
+            tableLayout.Controls.Add(textBox);
         }
 
         private void DisplayNICInfo(string nicName, string ipAddress, string subnetMask, string defaultGateway, string primaryDnsServer, string alternateDnsServer)
         {
+            // ラベルに表示する内容を更新
             nameTextBox.Text = nicName;
             ipTextBox.Text = ipAddress;
             subnetMaskTextBox.Text = subnetMask;
@@ -100,9 +93,17 @@ namespace WinFormsApp1
             alternateDnsTextBox.Text = alternateDnsServer;
         }
 
+        private void AdjustPanelSize()
+        {
+            // ボタンを含むすべてのコントロールの高さを取得
+            int totalHeight = tableLayout.GetPreferredSize(Size.Empty).Height;
+
+            // フォームの高さを調整
+            this.Height = totalHeight + 100;
+        }
+
         private void SaveButton_Click(object sender, EventArgs e)
         {
-            // 新しい設定を取得する
             string newName = nameTextBox.Text;
             string newIp = ipTextBox.Text;
             string newSubnetMask = subnetMaskTextBox.Text;
@@ -110,25 +111,16 @@ namespace WinFormsApp1
             string newPrimaryDnsServer = primaryDnsTextBox.Text;
             string newAlternateDnsServer = alternateDnsTextBox.Text;
 
-            // ネットワーク設定を変更する
             ChangeNetworkSettings(newName, newIp, newSubnetMask, newDefaultGateway, newPrimaryDnsServer, newAlternateDnsServer);
-
-            // 成功メッセージを表示する
-            MessageBox.Show("Settings saved successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
-        // ネットワーク設定を変更するメソッド
         private void ChangeNetworkSettings(string nicName, string newIp, string newSubnetMask, string newDefaultGateway, string newPrimaryDnsServer, string newAlternateDnsServer)
         {
-            // WMI クエリ文字列を構築する
             string query = $"SELECT * FROM Win32_NetworkAdapterConfiguration WHERE Description = '{nicName}'";
-
-            // ManagementObjectSearcher を使用してクエリを実行する
             ManagementObjectSearcher searcher = new ManagementObjectSearcher(query);
 
             foreach (ManagementObject obj in searcher.Get())
             {
-                // IP アドレス、サブネットマスク、デフォルトゲートウェイ、DNS サーバーを変更する
                 ManagementBaseObject newIP = obj.GetMethodParameters("EnableStatic");
                 newIP["IPAddress"] = new string[] { newIp };
                 newIP["SubnetMask"] = new string[] { newSubnetMask };
@@ -142,15 +134,19 @@ namespace WinFormsApp1
                 newDNS["DNSServerSearchOrder"] = new string[] { newPrimaryDnsServer, newAlternateDnsServer };
                 obj.InvokeMethod("SetDNSServerSearchOrder", newDNS, null);
 
-                // 必要ならば、他のネットワーク設定も変更することができます
-
-                // ネットワーク設定が正常に変更されたことを示すメッセージを表示する
-                MessageBox.Show("Network settings updated successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("ネットワーク設定が正常に更新されました。", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
-            // 対象のNICが見つからなかった場合にエラーメッセージを表示する
-            MessageBox.Show("Network interface not found.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show("ネットワークインターフェースが見つかりませんでした。", "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+
+        private TextBox CreateTextBox()
+        {
+            TextBox textBox = new TextBox();
+            textBox.Font = new Font("Arial", 10, FontStyle.Regular);
+            textBox.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+            return textBox;
         }
     }
 }
