@@ -8,15 +8,14 @@ namespace WinFormsApp1
     public class NICEditForm : Form
     {
 
-        private TableLayoutPanel tableLayout;
-        private Button saveButton;
-        private Panel contentPanel;
-        private TextBox nameTextBox;
-        private TextBox ipTextBox;
-        private TextBox subnetMaskTextBox;
-        private TextBox defaultGatewayTextBox;
-        private TextBox primaryDnsTextBox;
-        private TextBox alternateDnsTextBox;
+        private TableLayoutPanel? tableLayout; // Null 許容フィールドとして宣言
+        private Button? saveButton; // Null 許容フィールドとして宣言
+        private TextBox? nameTextBox; // Null 許容フィールドとして宣言
+        private TextBox? ipTextBox; // Null 許容フィールドとして宣言
+        private TextBox? subnetMaskTextBox; // Null 許容フィールドとして宣言
+        private TextBox? defaultGatewayTextBox; // Null 許容フィールドとして宣言
+        private TextBox? primaryDnsTextBox; // Null 許容フィールドとして宣言
+        private TextBox? alternateDnsTextBox; // Null 許容フィールドとして宣言
 
         public NICEditForm(string nicName, string ipAddress, string subnetMask, string defaultGateway, string[] dnsServers)
         {
@@ -68,6 +67,12 @@ namespace WinFormsApp1
 
             tableLayout.Controls.Add(saveButton);
             tableLayout.SetColumnSpan(saveButton, 2);
+
+            // Null 参照の可能性があるもののチェックを追加
+            if (tableLayout != null)
+            {
+                AdjustPanelSize();
+            }
         }
 
         private void AddRowWithTextBox(string label, TextBox textBox)
@@ -94,13 +99,33 @@ namespace WinFormsApp1
         }
 
         private void AdjustPanelSize()
-        {
-            // ボタンを含むすべてのコントロールの高さを取得
-            int totalHeight = tableLayout.GetPreferredSize(Size.Empty).Height;
+{
+    // Null 参照の可能性があるもののチェックを追加
+    if (tableLayout != null)
+    {
+        // ボタンを含むすべてのコントロールの高さを取得
+        int totalHeight = tableLayout.GetPreferredSize(Size.Empty).Height;
 
-            // フォームの高さを調整
-            this.Height = totalHeight + 100;
+        // フォームの高さを調整
+        this.Height = totalHeight + 100;
+
+        // テーブルレイアウトパネルの高さを調整
+        tableLayout.Height = totalHeight;
+
+        // ラベルの幅を計算
+        int labelWidth = (int)(tableLayout.Width * 0.3); // ラベルの幅はテーブルレイアウトパネルの幅の30%とします
+
+        // ラベルの幅を適用
+        foreach (Control control in tableLayout.Controls)
+        {
+            if (control is Label)
+            {
+                control.Width = labelWidth;
+            }
         }
+    }
+}
+
 
         private void SaveButton_Click(object sender, EventArgs e)
         {
