@@ -7,8 +7,9 @@ namespace WinFormsApp1
 {
     public class NICEditForm : Form
     {
-
         private TableLayoutPanel? tableLayout; // Null 許容フィールドとして宣言
+        private Label titleLabel; // NIC設定履歴タイトル用のラベル
+
         private Button? saveButton; // Null 許容フィールドとして宣言
         private TextBox? nameTextBox; // Null 許容フィールドとして宣言
         private TextBox? ipTextBox; // Null 許容フィールドとして宣言
@@ -16,6 +17,9 @@ namespace WinFormsApp1
         private TextBox? defaultGatewayTextBox; // Null 許容フィールドとして宣言
         private TextBox? primaryDnsTextBox; // Null 許容フィールドとして宣言
         private TextBox? alternateDnsTextBox; // Null 許容フィールドとして宣言
+
+        private Panel? historyPanel; // Null 許容フィールドとして宣言
+        private ListBox? historyListBox; // Null 許容フィールドとして宣言
 
         public NICEditForm(string nicName, string ipAddress, string subnetMask, string defaultGateway, string[] dnsServers)
         {
@@ -32,7 +36,7 @@ namespace WinFormsApp1
         private void InitializeComponents()
         {
             this.Text = "NIC 設定変更";
-            this.Size = new System.Drawing.Size(500, 350);
+            this.Size = new System.Drawing.Size(500, 500); // サイズを適切に調整してください
             this.StartPosition = FormStartPosition.CenterScreen;
             this.Font = new Font("Arial", 10, FontStyle.Regular);
 
@@ -44,6 +48,16 @@ namespace WinFormsApp1
             tableLayout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize)); // 列2: データ
 
             this.Controls.Add(tableLayout);
+
+            // NIC設定変更のタイトル
+            Label titleLabel = new Label();
+            titleLabel.Text = "NIC 設定変更";
+            titleLabel.Font = new Font("Arial", 12, FontStyle.Bold);
+            titleLabel.Dock = DockStyle.Top;
+            titleLabel.TextAlign = ContentAlignment.MiddleCenter;
+            titleLabel.AutoSize = true;
+            tableLayout.Controls.Add(titleLabel);
+            tableLayout.SetColumnSpan(titleLabel, 2);
 
             // ラベルとテキストボックスを追加
             nameTextBox = CreateTextBox();
@@ -68,12 +82,40 @@ namespace WinFormsApp1
             tableLayout.Controls.Add(saveButton);
             tableLayout.SetColumnSpan(saveButton, 2);
 
+            // NIC変更履歴一覧のパネルとリストボックスを追加
+            historyPanel = new Panel();
+            historyPanel.Dock = DockStyle.Bottom;
+            historyPanel.Height = 150; // 適切なサイズに調整してください
+
+            Label historyLabel = new Label();
+            historyLabel.Text = "NIC 変更履歴一覧";
+            historyLabel.Dock = DockStyle.Top;
+            historyLabel.TextAlign = ContentAlignment.MiddleCenter;
+            historyLabel.Font = new Font("Arial", 10, FontStyle.Bold);
+
+            historyListBox = new ListBox();
+            historyListBox.Dock = DockStyle.Fill;
+            historyPanel.Controls.Add(historyLabel);
+            historyPanel.Controls.Add(historyListBox);
+
+            this.Controls.Add(historyPanel);
+
+            // NIC変更履歴一覧の下に罫線を引くためのパネルを作成
+            Panel borderPanel = new Panel();
+            borderPanel.Height = 1;
+            borderPanel.Dock = DockStyle.Bottom;
+            borderPanel.BackColor = SystemColors.ControlDark; // 罫線の色を設定
+
+            this.Controls.Add(borderPanel);
+
             // Null 参照の可能性があるもののチェックを追加
             if (tableLayout != null)
             {
                 AdjustPanelSize();
             }
         }
+
+
 
         private void AddRowWithTextBox(string label, TextBox textBox)
         {
@@ -99,33 +141,32 @@ namespace WinFormsApp1
         }
 
         private void AdjustPanelSize()
-{
-    // Null 参照の可能性があるもののチェックを追加
-    if (tableLayout != null)
-    {
-        // ボタンを含むすべてのコントロールの高さを取得
-        int totalHeight = tableLayout.GetPreferredSize(Size.Empty).Height;
-
-        // フォームの高さを調整
-        this.Height = totalHeight + 100;
-
-        // テーブルレイアウトパネルの高さを調整
-        tableLayout.Height = totalHeight;
-
-        // ラベルの幅を計算
-        int labelWidth = (int)(tableLayout.Width * 0.3); // ラベルの幅はテーブルレイアウトパネルの幅の30%とします
-
-        // ラベルの幅を適用
-        foreach (Control control in tableLayout.Controls)
         {
-            if (control is Label)
+            // Null 参照の可能性があるもののチェックを追加
+            if (tableLayout != null)
             {
-                control.Width = labelWidth;
+                // ボタンを含むすべてのコントロールの高さを取得
+                int totalHeight = tableLayout.GetPreferredSize(Size.Empty).Height;
+
+                // フォームの高さを調整
+                this.Height = totalHeight + 200; // パネルの高さも考慮して調整してください
+
+                // テーブルレイアウトパネルの高さを調整
+                tableLayout.Height = totalHeight;
+
+                // ラベルの幅を計算
+                int labelWidth = (int)(tableLayout.Width * 0.3); // ラベルの幅はテーブルレイアウトパネルの幅の30%とします
+
+                // ラベルの幅を適用
+                foreach (Control control in tableLayout.Controls)
+                {
+                    if (control is Label)
+                    {
+                        control.Width = labelWidth;
+                    }
+                }
             }
         }
-    }
-}
-
 
         private void SaveButton_Click(object sender, EventArgs e)
         {
@@ -158,6 +199,9 @@ namespace WinFormsApp1
                 ManagementBaseObject newDNS = obj.GetMethodParameters("SetDNSServerSearchOrder");
                 newDNS["DNSServerSearchOrder"] = new string[] { newPrimaryDnsServer, newAlternateDnsServer };
                 obj.InvokeMethod("SetDNSServerSearchOrder", newDNS, null);
+
+                // リストボックスに履歴を追加
+                historyListBox.Items.Add($"NIC: {nicName} - IP: {newIp}, Subnet Mask: {newSubnetMask}, Gateway: {newDefaultGateway}, DNS: {newPrimaryDnsServer}, {newAlternateDnsServer}");
 
                 MessageBox.Show("ネットワーク設定が正常に更新されました。", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
